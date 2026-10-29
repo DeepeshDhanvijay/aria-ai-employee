@@ -18,13 +18,14 @@ services:
   backend:
     build: ./backend
     environment:
-      DATABASE_URL: postgresql+psycopg://aria:aria_dev_only@postgres:5432/aria
+      DATABASE_URL: sqlite:///./data/aria.db
       REDIS_URL: redis://redis:6379/0
       CRM_MCP_URL: http://crm:8001
     ports:
       - "8000:8000"
+    volumes:
+      - backend_data:/app/data
     depends_on:
-      - postgres
       - redis
       - crm
 
@@ -44,3 +45,4 @@ services:
 
 volumes:
   postgres_data:
+  backend_data:

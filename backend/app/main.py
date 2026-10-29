@@ -4,7 +4,7 @@ from fastapi import FastAPI, Header, HTTPException
 
 from .agent import AgentService
 from .knowledge import KnowledgeBase, KnowledgeChunk
-from .models import Approval, Business, ConversationCreate, KnowledgeDocument
+from .models import Approval, ApprovalDecision, Business, ConversationCreate, KnowledgeDocument
 from .store import Store
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -12,6 +12,8 @@ app = FastAPI(title="Aria AI Employee API", version="0.1.0")
 store = Store()
 knowledge = KnowledgeBase()
 agent = AgentService(knowledge)
+for document in store.list_documents():
+    knowledge.add(KnowledgeChunk(business_id=document.business_id, title=document.title, content=document.content, page=document.page))
 
 
 def require_business(x_business_id: str | None) -> str:
@@ -66,12 +68,15 @@ def list_approvals(x_business_id: str | None = Header(default=None)) -> list[App
 
 
 @app.post("/approvals/{approval_id}/decision", response_model=Approval)
-def decide_approval(approval_id: str, decision: str, x_business_id: str | None = Header(default=None)) -> Approval:
+def decide_approval(
+    approval_id: str,
+    decision: ApprovalDecision,
+    x_business_id: str | None = Header(default=None),
+) -> Approval:
     business_id = require_business(x_business_id)
     approval = store.approvals.get(approval_id)
     if approval is None or approval.business_id != business_id:
         raise HTTPException(status_code=404, detail="Approval not found")
-    if decision not in {"approved", "rejected"}:
-        raise HTTPException(status_code=422, detail="Decision must be approved or rejected")
-    approval.status = decision
+    approval.status = decision.decision
+    store.update_approval(approval)
     return approval

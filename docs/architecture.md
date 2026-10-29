@@ -1,6 +1,6 @@
 # Architecture and delivery plan
 
-The current scaffold implements the Phase 1 safety and tenant boundaries plus the first retrieval path. The in-memory store keeps local startup simple; the Docker deployment points the backend at PostgreSQL and is the seam for SQLAlchemy migrations and pgvector embeddings.
+The current MVP implements the Phase 1 safety and tenant boundaries plus the first retrieval path. Local API state is persisted in SQLite, while the Docker deployment points at PostgreSQL as the seam for the next repository layer and pgvector embeddings.
 
 ## Request flow
 
@@ -9,6 +9,13 @@ The current scaffold implements the Phase 1 safety and tenant boundaries plus th
 3. A response includes citations when evidence exists.
 4. Unknown or operationally risky requests create a pending approval.
 5. The dashboard lists only approvals belonging to the active tenant.
+
+## Current local MVP
+
+- Businesses, knowledge documents, and approvals survive backend restarts in SQLite.
+- Approval decisions use a typed request body and are persisted.
+- The dashboard can load, approve, and reject pending approvals.
+- `python evals/run.py` executes the four baseline safety and grounding cases.
 
 ## Next production steps
 

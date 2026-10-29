@@ -45,3 +45,36 @@ def test_unknown_request_escalates_and_is_tenant_scoped() -> None:
     assert client.get("/approvals", headers={"X-Business-ID": "one"}).json()[0]["id"] == approval["id"]
     client.post("/businesses", json={"id": "two", "name": "Two"})
     assert client.get("/approvals", headers={"X-Business-ID": "two"}).json() == []
+
+
+def test_approval_decision_is_typed_and_persisted() -> None:
+    client.post("/businesses", json={"id": "clinic", "name": "Clinic"})
+    response = client.post(
+        "/conversations/respond",
+        headers={"X-Business-ID": "clinic"},
+        json={"customer_name": "Sam", "message": "Can you repair a spaceship?"},
+    )
+    approval_id = response.json()["approval"]["id"]
+    decision = client.post(
+        f"/approvals/{approval_id}/decision",
+        headers={"X-Business-ID": "clinic"},
+        json={"decision": "approved"},
+    )
+    assert decision.status_code == 200
+    assert decision.json()["status"] == "approved"
+    assert client.get("/approvals", headers={"X-Business-ID": "clinic"}).json()[0]["status"] == "approved"
+
+
+def test_invalid_approval_decision_is_rejected() -> None:
+    client.post("/businesses", json={"id": "clinic", "name": "Clinic"})
+    approval_id = client.post(
+        "/conversations/respond",
+        headers={"X-Business-ID": "clinic"},
+        json={"customer_name": "Sam", "message": "Can you repair a spaceship?"},
+    ).json()["approval"]["id"]
+    response = client.post(
+        f"/approvals/{approval_id}/decision",
+        headers={"X-Business-ID": "clinic"},
+        json={"decision": "sent"},
+    )
+    assert response.status_code == 422

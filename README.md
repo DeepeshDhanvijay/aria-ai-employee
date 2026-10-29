@@ -7,9 +7,10 @@ Aria is a tenant-aware operations assistant for small businesses. It receives in
 - FastAPI backend with tenant-scoped businesses, conversations, knowledge documents, actions, and approvals
 - Grounded keyword knowledge search with source citations and an explicit "I don't know" fallback
 - Approval gate for external replies, booking changes, and other risky actions
+- SQLite-backed local persistence with a PostgreSQL-compatible deployment seam
 - Redis-compatible background worker boundary
 - CRM MCP-style service exposing contacts, deals, notes, and logging
-- Next.js dashboard shell for inbox and approvals
+- Next.js dashboard for tenant-scoped approval review
 - PostgreSQL/Redis Docker Compose setup
 - Pytest tests, evaluation cases, and GitHub Actions CI
 
@@ -32,7 +33,15 @@ pytest
 uvicorn app.main:app --reload
 ```
 
-The default local database is SQLite. Set `DATABASE_URL` to PostgreSQL for production.
+The default local database is SQLite and is stored in `backend/aria.db` (ignored by Git). The local MVP uses SQLite persistence; PostgreSQL remains the Docker deployment seam for the next repository layer.
+
+Run the evaluation cases from the repository root:
+
+```powershell
+python evals\run.py
+```
+
+The dashboard loads approvals using `NEXT_PUBLIC_API_URL` and the business ID entered on the page. Create a business through the API before loading its approvals.
 
 ## Safety model
 

@@ -17,7 +17,7 @@ class Business(BaseModel):
 
 class ConversationCreate(BaseModel):
     customer_name: str = Field(min_length=1, max_length=200)
-    customer_email: Optional[str] = None
+    customer_email: Optional[str] = Field(default=None, max_length=320)
     message: str = Field(min_length=1, max_length=10000)
 
 
@@ -44,8 +44,12 @@ class Approval(BaseModel):
     created_at: datetime = Field(default_factory=utc_now)
 
 
+class ApprovalDecision(BaseModel):
+    decision: str = Field(pattern="^(approved|rejected)$")
+
+
 class KnowledgeDocument(BaseModel):
     business_id: str
-    title: str
-    content: str
+    title: str = Field(min_length=1, max_length=300)
+    content: str = Field(min_length=1, max_length=200000)
     page: Optional[int] = None

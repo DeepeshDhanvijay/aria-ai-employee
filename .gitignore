@@ -3,6 +3,8 @@
 __pycache__/
 .pytest_cache/
 *.py[cod]
+aria.db
+backend/aria.db
 node_modules/
 .next/
 coverage.xml
